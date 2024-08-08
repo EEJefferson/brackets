@@ -1,43 +1,39 @@
-function check(str, bracketsConfig) {
+module.exports = function check(str, bracketsConfig) {
+  let stack = [];
+  let brObj = {};
+
   // Create a map for quick lookup of closing brackets
-  const bracketsMap = new Map();
-  for (const [open, close] of bracketsConfig) {
-    bracketsMap.set(open, close);
+  bracketsConfig.forEach(item => {
+    brObj[item[0]] = item[1];
+  });
+
+  // If the length of the string is odd, it cannot be a valid sequence
+  if (str.length % 2 !== 0) {
+    return false;
   }
 
-  // Stack to keep track of opening brackets
-  const stack = [];
+  for (let i = 0; i < str.length; i++) {
+    let cur = str[i];
 
-  for (const char of str) {
-    let isOpeningBracket = false;
-
-    // Check if the character is an opening bracket
-    for (const [open, close] of bracketsConfig) {
-      if (char === open) {
-        isOpeningBracket = true;
-        stack.push(char);
-        break;
-      }
-    }
-
-    // If it's not an opening bracket, it must be a closing bracket
-    if (!isOpeningBracket) {
-      // Special case: if opening and closing brackets are the same
-      if (bracketsMap.get(char) === char) {
-        if (stack.length === 0 || stack[stack.length - 1] !== char) {
-          return false;
-        }
+    if (Object.keys(brObj).includes(cur)) {
+      // If the current character is an opening bracket
+      if ((cur === stack[stack.length - 1]) && (brObj[cur] === cur)) {
+        // Special case: if opening and closing brackets are the same
         stack.pop();
       } else {
-        // General case: check if it matches the most recent opening bracket
-        if (stack.length === 0 || bracketsMap.get(stack[stack.length - 1]) !== char) {
-          return false;
-        }
-        stack.pop();
+        stack.push(cur);
       }
+    } else if (Object.values(brObj).includes(cur)) {
+      // If the current character is a closing bracket
+      if (stack.length === 0 || brObj[stack.pop()] !== cur) {
+        return false;
+      }
+    } else {
+      // If the current character is not a valid bracket
+      return false;
     }
   }
 
   // If the stack is empty, all brackets were matched correctly
   return stack.length === 0;
-}
+};
